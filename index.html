@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>◊ fallperf · sovereign 4G/edge perf monitor</title>
+<meta name="description" content="One-tap performance monitor for any estate seed. Measures TTFB, LCP, total load, transfer size · across cellular, WiFi, edge · stored locally in IndexedDB. Sovereign · single HTML · MIT.">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiZmFsbHBlcmYiLCJzaG9ydF9uYW1lIjoiZmFsbHBlcmYiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBhMGEiLCJ0aGVtZV9jb2xvciI6IiMwYTBhMGEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLHsxOSU8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEyOCAxMjgnPjxyZWN0IHdpZHRoPScxMjgnIGhlaWdodD0nMTI4JyBmaWxsPScjMGEwYTBhJy8+PHRleHQgeD0nNjQnIHk9JzgwJyBmb250LWZhbWlseT0nR2VvcmdpYScgZm9udC1zaXplPSc4MCcgZmlsbD0nI2Q0YTAxNycgdGV4dC1hbmNob3I9J21pZGRsZSc+4peKPC90ZXh0Pjwvc3ZnPiIsInNpemVzIjoiMTI4eDEyOCJ9XX0=">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0a;--surface:#141414;--surface-2:#1a1a18;--border:#222;
+  --text:#e8e6e3;--muted:#888;
+  --gold:#d4a017;--amber:#e8a012;
+  --good:#5ab85a;--ok:#d4a017;--bad:#cc3333;--info:#6a9aff;
+}
+html,body{background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,system-ui,'Segoe UI',Roboto,sans-serif;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);min-height:100dvh}
+
+header{position:sticky;top:0;z-index:10;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;background:linear-gradient(135deg,var(--gold),var(--amber));border-radius:5px;display:grid;place-items:center;font-family:Georgia,serif;font-weight:700;font-size:16px;color:#0a0a0a}
+.bn{font-weight:700;font-size:15px;letter-spacing:.01em}
+.sub{font-family:ui-monospace,monospace;font-size:9px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+
+main{padding:16px;max-width:680px;margin:0 auto;padding-bottom:80px}
+h1{font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:18px}
+
+.input-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px;margin-bottom:12px;display:flex;gap:6px}
+input[type=text]{flex:1;background:transparent;border:0;color:var(--text);padding:10px 12px;font:14px ui-monospace,monospace;outline:0;min-width:0}
+button{background:var(--gold);color:#0a0a0a;border:0;padding:10px 18px;font-weight:700;font-size:13px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.02em;white-space:nowrap}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.5;cursor:wait}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+button.ghost:hover{color:var(--gold);border-color:var(--gold)}
+
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.preset{background:var(--surface-2);color:var(--muted);border:1px solid var(--border);font-size:11px;padding:7px 10px;border-radius:4px;cursor:pointer;font-family:ui-monospace,monospace;letter-spacing:.02em}
+.preset:active{background:var(--surface);color:var(--gold);border-color:var(--gold)}
+
+.live-state{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:14px;font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);min-height:42px;display:flex;align-items:center;gap:8px}
+.live-state .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.live-state.busy .dot{background:var(--gold);animation:pulse 1s ease-in-out infinite}
+.live-state.done .dot{background:var(--good)}
+.live-state.err .dot{background:var(--bad)}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.result-card.flash{animation:flashin .4s ease-out}
+@keyframes flashin{from{background:rgba(212,160,23,.08);transform:translateY(4px)}to{background:var(--surface);transform:translateY(0)}}
+.result-url{font-family:ui-monospace,monospace;font-size:12px;color:var(--gold);margin-bottom:4px;word-break:break-all;line-height:1.4}
+.result-meta{font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:8px}
+.metric{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px}
+.metric .k{font-family:ui-monospace,monospace;font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.metric .v{font-family:ui-monospace,monospace;font-size:15px;color:var(--text);margin-top:2px;font-weight:600}
+.metric .v.good{color:var(--good)}
+.metric .v.ok{color:var(--ok)}
+.metric .v.bad{color:var(--bad)}
+
+.summary{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.summary h3{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+
+.history{margin-top:24px}
+.history h3{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.history h3 .count{color:var(--muted);font-weight:500;font-family:ui-monospace,monospace;font-size:10px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;font-family:ui-monospace,monospace;font-size:11px}
+.row .u{flex:1;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .t{color:var(--muted);font-size:10px}
+.row .ttfb{color:var(--info);min-width:55px;text-align:right}
+.row .ttfb.bad{color:var(--bad)}.row .ttfb.ok{color:var(--ok)}.row .ttfb.good{color:var(--good)}
+
+.foot{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);text-align:center;letter-spacing:.04em}
+.foot a{color:var(--gold);text-decoration:none}
+
+.conn{position:fixed;top:env(safe-area-inset-top);right:8px;font-family:ui-monospace,monospace;font-size:9px;color:var(--muted);background:rgba(10,10,10,.92);padding:6px 10px;border-radius:0 0 6px 6px;z-index:11;letter-spacing:.04em}
+.conn .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:6px;animation:pulse 2s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<div class="conn" id="conn"><span class="live-dot"></span>connection: <span id="connInfo">checking</span></div>
+
+<header>
+  <div class="brand">
+    <div class="mark">◊</div>
+    <div>
+      <div class="bn">fallperf</div>
+      <div class="sub">sovereign · 4G · edge · perf · ◊·κ=1</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <h1>4G / edge perf monitor</h1>
+  <p class="lede">One-tap performance check for any URL · measures TTFB, transfer size, total load, content size · saves history locally · no telemetry · works offline (the app itself, not what you're testing).</p>
+
+  <div class="input-bar">
+    <input type="text" id="url" placeholder="https://www.ai-nativesolutions.com/" autocomplete="url" autocapitalize="off" inputmode="url" spellcheck="false">
+    <button id="go">▶ test</button>
+  </div>
+
+  <div class="presets" id="presets"></div>
+
+  <div class="live-state" id="live"><span class="dot"></span><span id="liveMsg">ready · enter a URL or tap a preset above</span></div>
+
+  <div id="result"></div>
+
+  <div class="summary" id="summary" style="display:none">
+    <h3>self-test · this app over current connection</h3>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+
+  <div class="history">
+    <h3>history <span class="count" id="historyCount">0</span></h3>
+    <div id="historyList"></div>
+    <div style="margin-top:10px;display:flex;gap:6px">
+      <button class="ghost" id="exportBtn" style="font-size:11px;padding:7px 10px">export json</button>
+      <button class="ghost" id="clearBtn" style="font-size:11px;padding:7px 10px">clear history</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    fallperf · prime 1361 · ◊·κ=1 · MIT · part of <a href="https://www.ai-nativesolutions.com">AI Native Solutions</a><br>
+    history stored in IndexedDB · sovereign · client-only · no data leaves device
+  </div>
+</main>
+
+<script>
+// ─── konomi shim ────────────────────────────────────────
+window.KONOMI = { active: true, tier: 'sovereign', prime: 1361, seal: '◊·κ=1', name: 'fallperf' };
+
+// ─── presets · the estate's own endpoints ───────────────
+const PRESETS = [
+  { label: 'landing',    url: 'https://www.ai-nativesolutions.com/' },
+  { label: 'ai dossier', url: 'https://www.ai-nativesolutions.com/ai.html' },
+  { label: 'llms.txt',   url: 'https://www.ai-nativesolutions.com/llms.txt' },
+  { label: 'spec',       url: 'https://www.ai-nativesolutions.com/spec.html' },
+  { label: 'falldesk',   url: 'https://sjgant80-hub.github.io/falldesk/' },
+  { label: 'fall-kit',   url: 'https://sjgant80-hub.github.io/fall-kit/' },
+  { label: 'kcc-mint',   url: 'https://sjgant80-hub.github.io/kcc-mint/' },
+  { label: 'mcp bridge', url: 'https://kcc-bridge.sjgant80.workers.dev/tool/get_estate_overview' },
+  { label: 'registry',   url: 'https://sjgant80-hub.github.io/fall-registry/index.json' },
+];
+const presetEl = document.getElementById('presets');
+PRESETS.forEach(p => {
+  const b = document.createElement('button');
+  b.className = 'preset';
+  b.textContent = p.label;
+  b.onclick = () => { document.getElementById('url').value = p.url; runTest(); };
+  presetEl.appendChild(b);
+});
+
+// ─── connection info ────────────────────────────────────
+function refreshConn() {
+  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const info = c ? `${c.effectiveType || '?'} · ${c.downlink || '?'}Mbps · rtt ${c.rtt || '?'}ms${c.saveData ? ' · saveData' : ''}` : 'API unsupported (desktop?)';
+  document.getElementById('connInfo').textContent = info;
+}
+refreshConn();
+if (navigator.connection) navigator.connection.addEventListener('change', refreshConn);
+
+// ─── self-test on boot ──────────────────────────────────
+async function selfTest() {
+  const t0 = performance.now();
+  const r = await fetch(location.href + '?_perf=' + Date.now(), { cache: 'no-store' });
+  await r.text();
+  const total = performance.now() - t0;
+  const nav = performance.getEntriesByType('navigation')[0];
+  const ttfb = nav ? Math.round(nav.responseStart - nav.requestStart) : null;
+  const lcp = await getLCP();
+  const transferSize = nav?.transferSize || null;
+  const decodedSize = nav?.decodedBodySize || null;
+  const dnsTime = nav ? Math.round(nav.domainLookupEnd - nav.domainLookupStart) : null;
+  const sg = document.getElementById('summaryGrid');
+  const cls = (v, g, o) => v == null ? '' : v < g ? 'good' : v < o ? 'ok' : 'bad';
+  sg.innerHTML = `
+    <div class="metric"><div class="k">refetch</div><div class="v ${cls(total, 500, 1500)}">${Math.round(total)} ms</div></div>
+    <div class="metric"><div class="k">ttfb (boot)</div><div class="v ${cls(ttfb, 300, 1000)}">${ttfb ?? '?'} ms</div></div>
+    <div class="metric"><div class="k">lcp</div><div class="v ${cls(lcp, 1500, 3000)}">${lcp ?? '?'} ms</div></div>
+    <div class="metric"><div class="k">dns</div><div class="v ${cls(dnsTime, 50, 200)}">${dnsTime ?? '?'} ms</div></div>
+    <div class="metric"><div class="k">page xfer</div><div class="v">${fmtBytes(transferSize)}</div></div>
+    <div class="metric"><div class="k">page size</div><div class="v">${fmtBytes(decodedSize)}</div></div>
+  `;
+  document.getElementById('summary').style.display = 'block';
+}
+
+function getLCP() {
+  return new Promise(resolve => {
+    if (!window.PerformanceObserver) return resolve(null);
+    let lcp = null;
+    try {
+      const po = new PerformanceObserver(list => { for (const e of list.getEntries()) lcp = Math.round(e.renderTime || e.loadTime); });
+      po.observe({ type: 'largest-contentful-paint', buffered: true });
+      setTimeout(() => { try { po.disconnect(); } catch(e){} resolve(lcp); }, 2500);
+    } catch (e) { resolve(null); }
+  });
+}
+
+// ─── core test ──────────────────────────────────────────
+async function runTest() {
+  const url = document.getElementById('url').value.trim();
+  if (!url) { setLive('err', 'enter a URL first'); return; }
+  if (!/^https?:\/\//.test(url)) { setLive('err', 'URL must start with http(s)://'); return; }
+  const btn = document.getElementById('go'); btn.disabled = true;
+  setLive('busy', `fetching ${url} ...`);
+  const result = await measureUrl(url);
+  setLive(result.error ? 'err' : 'done', result.error ? `error · ${result.error}` : `done in ${result.totalMs} ms`);
+  await saveResult(result);
+  renderResult(result);
+  await renderHistory();
+  btn.disabled = false;
+}
+
+async function measureUrl(url) {
+  const startedAt = new Date().toISOString();
+  const t0 = performance.now();
+  let ttfbMs = null, totalMs = null, contentBytes = null, contentType = null, statusCode = null, error = null, redirected = false;
+  try {
+    const res = await fetch(url, { cache: 'no-store', redirect: 'follow' });
+    const tAfterHeaders = performance.now();
+    ttfbMs = Math.round(tAfterHeaders - t0);
+    statusCode = res.status;
+    redirected = res.redirected;
+    contentType = res.headers.get('content-type') || 'unknown';
+    const body = await res.arrayBuffer();
+    contentBytes = body.byteLength;
+    totalMs = Math.round(performance.now() - t0);
+  } catch (e) {
+    error = e.message || String(e);
+    totalMs = Math.round(performance.now() - t0);
+  }
+  return {
+    id: 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+    url, startedAt, ttfbMs, totalMs, contentBytes, contentType, statusCode, redirected, error,
+    connection: getConnSnapshot(),
+  };
+}
+
+function getConnSnapshot() {
+  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  return c ? { effectiveType: c.effectiveType, downlink: c.downlink, rtt: c.rtt, saveData: c.saveData } : null;
+}
+
+// ─── rendering ──────────────────────────────────────────
+function renderResult(r) {
+  const wrap = document.getElementById('result');
+  const cls = (v, g, o) => v == null ? '' : v < g ? 'good' : v < o ? 'ok' : 'bad';
+  const statusClass = r.error ? 'bad' : (r.statusCode >= 200 && r.statusCode < 300) ? 'good' : 'bad';
+  const card = document.createElement('div');
+  card.className = 'result-card flash';
+  card.innerHTML = `
+    <div class="result-url">${escapeHtml(r.url)}</div>
+    <div class="result-meta">${new Date(r.startedAt).toLocaleTimeString()} · ${escapeHtml(r.contentType || 'unknown')} · ${r.redirected ? 'redirected · ' : ''}${r.connection ? `${r.connection.effectiveType || '?'} ${r.connection.downlink || '?'}Mbps rtt${r.connection.rtt || '?'}` : 'conn unknown'}</div>
+    <div class="metrics">
+      <div class="metric"><div class="k">status</div><div class="v ${statusClass}">${r.error ? 'ERR' : r.statusCode}</div></div>
+      <div class="metric"><div class="k">ttfb</div><div class="v ${cls(r.ttfbMs, 300, 1000)}">${r.ttfbMs ?? '?'} ms</div></div>
+      <div class="metric"><div class="k">total</div><div class="v ${cls(r.totalMs, 800, 2500)}">${r.totalMs} ms</div></div>
+      <div class="metric"><div class="k">bytes</div><div class="v">${fmtBytes(r.contentBytes)}</div></div>
+      <div class="metric"><div class="k">throughput</div><div class="v">${r.totalMs && r.contentBytes ? fmtThroughput(r.contentBytes, r.totalMs) : '?'}</div></div>
+      ${r.error ? `<div class="metric" style="grid-column:1/-1"><div class="k">error</div><div class="v bad" style="font-size:11px">${escapeHtml(r.error)}</div></div>` : ''}
+    </div>
+  `;
+  wrap.insertBefore(card, wrap.firstChild);
+  while (wrap.children.length > 3) wrap.removeChild(wrap.lastChild);
+}
+
+function setLive(state, msg) {
+  const el = document.getElementById('live');
+  el.className = 'live-state ' + (state || '');
+  document.getElementById('liveMsg').textContent = msg;
+}
+
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmtBytes(b) { if (b == null) return '?'; if (b < 1024) return b + ' B'; if (b < 1024 * 1024) return (b/1024).toFixed(1) + ' KB'; return (b/1024/1024).toFixed(2) + ' MB'; }
+function fmtThroughput(bytes, ms) { const mbps = (bytes * 8) / (ms / 1000) / 1e6; return mbps < 1 ? (mbps * 1000).toFixed(0) + ' kbps' : mbps.toFixed(2) + ' Mbps'; }
+
+// ─── IndexedDB persistence ──────────────────────────────
+const DB_NAME = 'fallperf_db', DB_VERSION = 1, STORE = 'tests';
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        const s = db.createObjectStore(STORE, { keyPath: 'id' });
+        s.createIndex('startedAt', 'startedAt');
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function saveResult(r) {
+  const db = await openDB();
+  await new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(r);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+  db.close();
+}
+async function getAllResults() {
+  const db = await openDB();
+  const arr = await new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  });
+  db.close();
+  return arr.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+}
+async function clearAll() {
+  const db = await openDB();
+  await new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+  db.close();
+}
+
+async function renderHistory() {
+  const list = await getAllResults();
+  document.getElementById('historyCount').textContent = list.length + ' tests';
+  const wrap = document.getElementById('historyList');
+  wrap.innerHTML = '';
+  for (const r of list.slice(0, 30)) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const cls = r.ttfbMs == null ? '' : r.ttfbMs < 300 ? 'good' : r.ttfbMs < 1000 ? 'ok' : 'bad';
+    const url = r.url.length > 50 ? r.url.slice(0, 47) + '...' : r.url;
+    row.innerHTML = `
+      <span class="ttfb ${cls}">${r.ttfbMs ?? '?'}ms</span>
+      <span class="u" title="${escapeHtml(r.url)}">${escapeHtml(url)}</span>
+      <span class="t">${new Date(r.startedAt).toLocaleTimeString()}</span>
+    `;
+    wrap.appendChild(row);
+  }
+}
+
+// ─── controls ───────────────────────────────────────────
+document.getElementById('go').onclick = runTest;
+document.getElementById('url').addEventListener('keydown', e => { if (e.key === 'Enter') runTest(); });
+document.getElementById('clearBtn').onclick = async () => {
+  if (!confirm('clear all history?')) return;
+  await clearAll(); await renderHistory();
+  setLive('', 'history cleared');
+};
+document.getElementById('exportBtn').onclick = async () => {
+  const list = await getAllResults();
+  const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `fallperf-history-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ─── boot ───────────────────────────────────────────────
+selfTest();
+renderHistory();
+setLive('', 'ready · enter a URL or tap a preset above');
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "fallperf",
+  "url": "https://sjgant80-hub.github.io/fallperf/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Browser",
+  "description": "Sovereign 4G/edge performance monitor · measures TTFB, transfer size, throughput, total load · history in IndexedDB · part of AI Native Solutions estate",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Person", "name": "Simon Gant" }
+}
+</script>
+
+</body>
+</html>
