@@ -143,8 +143,7 @@ const PRESETS = [
   { label: 'fall-kit',   url: 'https://sjgant80-hub.github.io/fall-kit/' },
   { label: 'kcc-mint',   url: 'https://sjgant80-hub.github.io/kcc-mint/' },
   { label: 'mcp bridge', url: 'https://kcc-bridge.sjgant80.workers.dev/tool/get_estate_overview' },
-  { label: 'registry',   url: 'https://sjgant80-hub.github.io/fall-registry/index.json' },
-];
+  { label: 'registry',   url: 'https://sjgant80-hub.github.io/fall-registry/index.json' }];
 const presetEl = document.getElementById('presets');
 PRESETS.forEach(p => {
   const b = document.createElement('button');
@@ -236,8 +235,7 @@ async function measureUrl(url) {
   return {
     id: 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
     url, startedAt, ttfbMs, totalMs, contentBytes, contentType, statusCode, redirected, error,
-    connection: getConnSnapshot(),
-  };
+    connection: getConnSnapshot()};
 }
 
 function getConnSnapshot() {
@@ -375,7 +373,6 @@ setLive('', 'ready · enter a URL or tap a preset above');
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Browser",
   "description": "Sovereign 4G/edge performance monitor · measures TTFB, transfer size, throughput, total load · history in IndexedDB · part of AI Native Solutions estate",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
   "license": "https://opensource.org/licenses/MIT",
   "author": { "@type": "Person", "name": "Simon Gant" }
 }
