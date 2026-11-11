@@ -1,7 +1,7 @@
 # ◊ fallperf · sovereign 4G/edge perf monitor
 
 > One-tap performance check for any URL. Built for working off 4G in the woods.
-> Part of the [AI Native Solutions](https://www.ai-nativesolutions.com) estate · prime 1361 · MIT.
+> Part of the [AI Native Solutions](https://www.ai-nativesolutions.com) estate · MIT.
 
 ## What it does
 
@@ -38,7 +38,7 @@ Install to home screen for one-tap access.
 - ~1.4 KB compressed body, no external resources (no Google Fonts hang on slow connection)
 - IndexedDB store: `fallperf_db / tests`
 - PWA manifest baked in as data URL · install to home screen
-- ◊·κ=1 stamped · `window.KONOMI` shim active
+-  stamped · `window.KONOMI` shim active
 
 ## What it doesn't do
 
@@ -52,4 +52,4 @@ MIT · fork freely.
 
 ## Built by
 
-Simon Gant · part of the AI Native Solutions estate · ◊·κ=1
+Simon Gant · part of the AI Native Solutions estate
